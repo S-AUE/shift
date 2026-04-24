@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="シフト希望">
+<title>シフト希望</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --green: #1D9E75;
+    --green-light: #E1F5EE;
+    --green-mid: #9FE1CB;
+    --green-dark: #0F6E56;
+    --red: #D85A30;
+    --blue: #378ADD;
+    --bg: #F7F6F2;
+    --surface: #FFFFFF;
+    --border: rgba(0,0,0,0.1);
+    --text: #1a1a1a;
+    --text-muted: #888;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 16px;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  h1 {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  h1 span { color: var(--green); }
+
+  /* header nav */
+  .header { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+  .nav-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 6px 14px;
+    cursor: pointer;
+    font-size: 16px;
+    color: var(--text);
+    font-family: inherit;
+  }
+  .nav-btn:active { opacity: 0.7; }
+  .month-label { font-size: 19px; font-weight: 700; flex: 1; text-align: center; }
+
+  /* calendar */
+  .cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+    margin-bottom: 16px;
+  }
+  .day-header {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--text-muted);
+    padding: 4px 0;
+  }
+  .day-header.sun { color: var(--red); }
+  .day-header.sat { color: var(--blue); }
+  .day-cell {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 5px 4px;
+    min-height: 58px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .day-cell:active { opacity: 0.75; }
+  .day-cell.empty { border-color: transparent; background: none; cursor: default; pointer-events: none; }
+  .day-cell.selected { border: 2px solid var(--green); background: var(--green-light); }
+  .day-num {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+  .day-cell.sun .day-num { color: var(--red); }
+  .day-cell.sat .day-num { color: var(--blue); }
+  .day-time {
+    font-size: 10px;
+    color: var(--green-dark);
+    background: var(--green-mid);
+    border-radius: 4px;
+    padding: 1px 4px;
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* summary */
+  .summary-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+  }
+  .summary-title {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .summary-list {
+    font-size: 14px;
+    line-height: 2;
+    color: var(--text);
+    white-space: pre-wrap;
+    min-height: 40px;
+  }
+  .empty-note { color: var(--text-muted); font-size: 13px; }
+  .copy-btn {
+    margin-top: 12px;
+    width: 100%;
+    background: var(--green);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 10px;
+    font-size: 14px;
+    font-family: inherit;
+    font-weight: 500;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .copy-btn:active { opacity: 0.8; }
+
+  /* modal */
+  .modal-bg {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 100;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .modal-bg.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: var(--radius) var(--radius) 0 0;
+    padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+    width: 100%;
+    max-width: 480px;
+  }
+  .modal-handle {
+    width: 36px; height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 0 auto 16px;
+  }
+  .modal h3 { font-size: 17px; font-weight: 700; margin-bottom: 14px; }
+  .time-check {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 14px; font-size: 14px; color: var(--text);
+    cursor: pointer;
+  }
+  .time-check input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--green); cursor: pointer; }
+  .time-fields { display: none; }
+  .time-row {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 10px;
+  }
+  .time-row label { font-size: 13px; color: var(--text-muted); width: 28px; }
+  .time-row input[type=time] {
+    flex: 1;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+    font-size: 15px;
+    font-family: inherit;
+    background: var(--bg);
+    color: var(--text);
+  }
+  .modal-btns { display: flex; gap: 8px; margin-top: 16px; }
+  .modal-btns button {
+    flex: 1; padding: 11px;
+    border-radius: var(--radius-sm);
+    font-size: 14px; font-family: inherit; font-weight: 500;
+    cursor: pointer; border: 1px solid var(--border);
+    background: var(--bg); color: var(--text);
+  }
+  .modal-btns .btn-ok { background: var(--green); color: #fff; border-color: var(--green); }
+  .modal-btns .btn-del { color: var(--red); border-color: #F0997B; background: #FAECE7; }
+</style>
+</head>
+<body>
+
+<h1>📅 シフト<span>希望</span></h1>
+
+<div class="header">
+  <button class="nav-btn" id="prev">&#8592;</button>
+  <div class="month-label" id="month-label"></div>
+  <button class="nav-btn" id="next">&#8594;</button>
+</div>
+
+<div class="cal-grid" id="cal"></div>
+
+<div class="summary-box">
+  <div class="summary-title">希望一覧</div>
+  <div class="summary-list" id="summary"><span class="empty-note">日付をタップして希望を追加</span></div>
+  <button class="copy-btn" id="copy-btn">テキストをコピー</button>
+</div>
+
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3 id="modal-title"></h3>
+    <label class="time-check">
+      <input type="checkbox" id="use-time" />
+      時間を指定する
+    </label>
+    <div class="time-fields" id="time-fields">
+      <div class="time-row">
+        <label>開始</label>
+        <input type="time" id="t-start" value="09:00" />
+      </div>
+      <div class="time-row">
+        <label>終了</label>
+        <input type="time" id="t-end" value="17:00" />
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-del" id="btn-del">削除</button>
+      <button id="btn-cancel">キャンセル</button>
+      <button class="btn-ok" id="btn-ok">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const DOW = ['日','月','火','水','木','金','土'];
+let selected = JSON.parse(localStorage.getItem('shift_data') || '{}');
+let currentYear, currentMonth, editKey;
+
+function save() { localStorage.setItem('shift_data', JSON.stringify(selected)); }
+
+function initMonth() {
+  const now = new Date();
+  let y = now.getFullYear(), m = now.getMonth() + 2;
+  if (m > 11) { y++; m = 0; }
+  currentYear = y; currentMonth = m;
+}
+
+function render() {
+  const y = currentYear, m = currentMonth;
+  document.getElementById('month-label').textContent = y + '年' + (m+1) + '月';
+  const cal = document.getElementById('cal');
+  cal.innerHTML = '';
+  ['日','月','火','水','木','金','土'].forEach((d,i) => {
+    const h = document.createElement('div');
+    h.className = 'day-header' + (i===0?' sun':i===6?' sat':'');
+    h.textContent = d;
+    cal.appendChild(h);
+  });
+  const first = new Date(y, m, 1).getDay();
+  const days = new Date(y, m+1, 0).getDate();
+  for (let i = 0; i < first; i++) {
+    const e = document.createElement('div'); e.className = 'day-cell empty'; cal.appendChild(e);
+  }
+  for (let d = 1; d <= days; d++) {
+    const dow = new Date(y, m, d).getDay();
+    const key = y+'-'+(m+1)+'-'+d;
+    const cell = document.createElement('div');
+    cell.className = 'day-cell' + (dow===0?' sun':dow===6?' sat':'') + (selected[key]!==undefined?' selected':'');
+    const num = document.createElement('div'); num.className = 'day-num';
+    num.textContent = d + '(' + DOW[dow] + ')';
+    cell.appendChild(num);
+    if (selected[key] && selected[key].start) {
+      const t = document.createElement('div'); t.className = 'day-time';
+      t.textContent = selected[key].start + '〜' + selected[key].end;
+      cell.appendChild(t);
+    }
+    cell.addEventListener('click', () => openModal(y, m+1, d, dow));
+    cal.appendChild(cell);
+  }
+  updateSummary();
+}
+
+function openModal(y, mo, d, dow) {
+  editKey = y+'-'+mo+'-'+d;
+  document.getElementById('modal-title').textContent = mo+'月'+d+'日（'+DOW[dow]+'）';
+  const data = selected[editKey] || {};
+  const useTime = !!(data && data.start);
+  document.getElementById('use-time').checked = useTime;
+  document.getElementById('time-fields').style.display = useTime ? 'block' : 'none';
+  document.getElementById('t-start').value = data.start || '09:00';
+  document.getElementById('t-end').value = data.end || '17:00';
+  document.getElementById('modal-bg').classList.add('open');
+}
+
+document.getElementById('use-time').addEventListener('change', function() {
+  document.getElementById('time-fields').style.display = this.checked ? 'block' : 'none';
+});
+document.getElementById('modal-bg').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('open');
+});
+document.getElementById('btn-cancel').addEventListener('click', () => {
+  document.getElementById('modal-bg').classList.remove('open');
+});
+document.getElementById('btn-del').addEventListener('click', () => {
+  delete selected[editKey]; save();
+  document.getElementById('modal-bg').classList.remove('open');
+  render();
+});
+document.getElementById('btn-ok').addEventListener('click', () => {
+  if (document.getElementById('use-time').checked) {
+    selected[editKey] = { start: document.getElementById('t-start').value, end: document.getElementById('t-end').value };
+  } else {
+    selected[editKey] = {};
+  }
+  save();
+  document.getElementById('modal-bg').classList.remove('open');
+  render();
+});
+document.getElementById('prev').addEventListener('click', () => {
+  currentMonth--; if (currentMonth < 0) { currentYear--; currentMonth = 11; } render();
+});
+document.getElementById('next').addEventListener('click', () => {
+  currentMonth++; if (currentMonth > 11) { currentYear++; currentMonth = 0; } render();
+});
+
+function updateSummary() {
+  const keys = Object.keys(selected).sort((a,b) => {
+    const [ay,am,ad] = a.split('-').map(Number);
+    const [by,bm,bd] = b.split('-').map(Number);
+    return new Date(ay,am-1,ad) - new Date(by,bm-1,bd);
+  });
+  if (!keys.length) {
+    document.getElementById('summary').innerHTML = '<span class="empty-note">日付をタップして希望を追加</span>';
+    return;
+  }
+  const lines = keys.map(k => {
+    const [y,m,d] = k.split('-').map(Number);
+    const dow = new Date(y,m-1,d).getDay();
+    const data = selected[k];
+    let line = m+'月'+d+'日（'+DOW[dow]+'）';
+    if (data && data.start) line += '　' + data.start + '〜' + data.end;
+    return line;
+  });
+  document.getElementById('summary').textContent = lines.join('\n');
+}
+
+document.getElementById('copy-btn').addEventListener('click', () => {
+  const text = document.getElementById('summary').textContent;
+  if (!text || text.includes('日付をタップ')) return;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = 'コピーしました！';
+    setTimeout(() => btn.textContent = 'テキストをコピー', 1800);
+  });
+});
+
+initMonth(); render();
+</script>
+</body>
+</html>
