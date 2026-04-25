@@ -7,7 +7,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="シフト希望">
 <title>シフト希望</title>
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23FF2D78'/><rect x='18' y='28' width='64' height='58' rx='6' fill='white'/><rect x='18' y='18' width='64' height='24' rx='6' fill='white'/><rect x='28' y='14' width='8' height='16' rx='4' fill='%23FF2D78'/><rect x='64' y='14' width='8' height='16' rx='4' fill='%23FF2D78'/><rect x='18' y='34' width='64' height='4' fill='%23FF2D78' opacity='.2'/><rect x='26' y='50' width='12' height='12' rx='3' fill='%23FF2D78'/><rect x='44' y='50' width='12' height='12' rx='3' fill='%23FF2D78' opacity='.3'/><rect x='62' y='50' width='12' height='12' rx='3' fill='%23FF2D78' opacity='.3'/><rect x='26' y='68' width='12' height='12' rx='3' fill='%23FF2D78' opacity='.3'/><rect x='44' y='68' width='12' height='12' rx='3' fill='%23FF2D78'/><rect x='62' y='68' width='12' height='12' rx='3' fill='%23FF2D78'/></svg>">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="icon.png">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -83,7 +84,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;ba
     <button class="lang-btn" id="lang-btn">EN</button>
   </div>
 </div>
- 
+
 <div class="color-panel" id="color-panel">
   <div class="color-panel-title" id="color-panel-title">テーマカラー</div>
   <div class="color-swatches">
@@ -94,7 +95,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;ba
     <div class="swatch" data-color="yellow" style="background:#FFD600"></div>
   </div>
 </div>
- 
+
 <div class="header">
   <button class="nav-btn" id="prev">&#8592;</button>
   <div class="month-label" id="month-label"></div>
@@ -106,7 +107,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;ba
   <div class="summary-list" id="summary"></div>
   <button class="copy-btn" id="copy-btn">テキストをコピー</button>
 </div>
- 
+
 <div class="modal-bg" id="modal-bg">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -132,7 +133,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;ba
     </div>
   </div>
 </div>
- 
+
 <script>
 const HOLIDAYS_JP = {
   "2025-1-1":"元日","2025-1-13":"成人の日","2025-2-11":"建国記念の日","2025-2-23":"天皇誕生日",
@@ -162,7 +163,7 @@ const HOLIDAYS_EN = {
   "2027-3-21":"Vernal Equinox","2027-4-29":"Showa Day","2027-5-3":"Constitution Day","2027-5-4":"Greenery Day",
   "2027-5-5":"Children's Day"
 };
- 
+
 const COLORS = {
   pink:  {ac:'#FF2D78',light:'#FFE0ED',mid:'#FFB3D1',dark:'#C4005A'},
   blue:  {ac:'#2979FF',light:'#E8F0FF',mid:'#82B0FF',dark:'#0050CB'},
@@ -170,7 +171,7 @@ const COLORS = {
   red:   {ac:'#FF1744',light:'#FFE8EE',mid:'#FF8099',dark:'#C4001A'},
   yellow:{ac:'#FFD600',light:'#FFFBE0',mid:'#FFE97A',dark:'#C7A000'}
 };
- 
+
 const T = {
   ja:{
     title:'シフト希望',colorPanel:'テーマカラー',summaryTitle:'希望一覧',
@@ -180,6 +181,7 @@ const T = {
     empty:'日付をタップして希望を追加',
     dow:['日','月','火','水','木','金','土'],
     dowFull:['日','月','火','水','木','金','土'],
+
     months:['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'],
     monthLabel:(y,m)=>y+'年'+(m+1)+'月',
     dateLabel:(m,d,dow,hname)=>m+'月'+d+'日（'+dow+'）'+(hname?' 🎌'+hname:''),
@@ -191,7 +193,7 @@ const T = {
     timeCheck:'Set time',start:'Start',end:'End',
     del:'Delete',cancel:'Cancel',ok:'OK',
     empty:'Tap a date to add your request',
-    dow:['Su','Mo','Tu','We','Th','Fr','Sa'],
+    dow:['S','M','T','W','T','F','S'],
     dowFull:['Sun','Mon','Tue','Wed','Thu','Fri','Sat'],
     months:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
     monthLabel:(y,m)=>T.en.months[m]+' '+y,
@@ -199,16 +201,16 @@ const T = {
     summaryLine:(m,d,dow,s,e,hname)=>T.en.months[m-1]+' '+d+' ('+dow+')'+(hname?' 🎌':'')+(s?' '+s+'〜'+e:''),
   }
 };
- 
+
 let lang = localStorage.getItem('shift_lang')||'ja';
 let color = localStorage.getItem('shift_color')||'pink';
 let selected = JSON.parse(localStorage.getItem('shift_data')||'{}');
 let currentYear, currentMonth, editKey;
- 
+
 function save(){localStorage.setItem('shift_data',JSON.stringify(selected));}
 function saveLang(){localStorage.setItem('shift_lang',lang);}
 function saveColor(){localStorage.setItem('shift_color',color);}
- 
+
 function applyColor(){
   const c = COLORS[color];
   const r = document.documentElement.style;
@@ -218,14 +220,14 @@ function applyColor(){
   r.setProperty('--ac-dark',c.dark);
   document.querySelectorAll('.swatch').forEach(s=>s.classList.toggle('active',s.dataset.color===color));
 }
- 
+
 function t(){return T[lang];}
- 
+
 function getHoliday(y,m,d){
   const key=y+'-'+m+'-'+d;
   return lang==='ja'?(HOLIDAYS_JP[key]||null):(HOLIDAYS_EN[key]||null);
 }
- 
+
 function updateLabels(){
   document.getElementById('app-title').textContent=t().title;
   document.getElementById('lang-btn').textContent=lang==='ja'?'EN':'JA';
@@ -239,14 +241,14 @@ function updateLabels(){
   document.getElementById('btn-cancel').textContent=t().cancel;
   document.getElementById('btn-ok').textContent=t().ok;
 }
- 
+
 function initMonth(){
   const now=new Date();
   let y=now.getFullYear(),m=now.getMonth()+2;
   if(m>11){y++;m=0;}
   currentYear=y;currentMonth=m;
 }
- 
+
 function render(){
   const y=currentYear,m=currentMonth;
   document.getElementById('month-label').textContent=t().monthLabel(y,m);
@@ -285,7 +287,7 @@ function render(){
   }
   updateSummary();
 }
- 
+
 function openModal(y,mo,d,dow,hname){
   editKey=y+'-'+mo+'-'+d;
   const dowName=t().dowFull[dow];
@@ -298,7 +300,7 @@ function openModal(y,mo,d,dow,hname){
   document.getElementById('t-end').value=data.end||'17:00';
   document.getElementById('modal-bg').classList.add('open');
 }
- 
+
 document.getElementById('use-time').addEventListener('change',function(){
   document.getElementById('time-fields').style.display=this.checked?'block':'none';
 });
@@ -331,7 +333,7 @@ document.getElementById('color-toggle').addEventListener('click',()=>{
 document.querySelectorAll('.swatch').forEach(s=>s.addEventListener('click',()=>{
   color=s.dataset.color;saveColor();applyColor();
 }));
- 
+
 function updateSummary(){
   const keys=Object.keys(selected).sort((a,b)=>{
     const [ay,am,ad]=a.split('-').map(Number);
@@ -351,7 +353,7 @@ function updateSummary(){
   });
   document.getElementById('summary').textContent=lines.join('\n');
 }
- 
+
 document.getElementById('copy-btn').addEventListener('click',()=>{
   const text=document.getElementById('summary').textContent;
   if(!text||text.includes(t().empty.slice(0,4)))return;
@@ -361,9 +363,8 @@ document.getElementById('copy-btn').addEventListener('click',()=>{
     setTimeout(()=>btn.textContent=t().copyBtn,1800);
   });
 });
- 
+
 applyColor();updateLabels();initMonth();render();
 </script>
 </body>
 </html>
- 
